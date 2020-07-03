@@ -61,14 +61,21 @@
             <input type="text" class="form-control" id="title" aria-describedby="emailHelp">
             <small id="Help" class="form-text text-muted">Give a heading to your task.</small>
         </div>
+
         <div class="form-group">
             <label for="description">Description</label>
             <textarea class="form-control" id="description" rows="3"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary" id="add">Add To List</button>
-        <button type="submit" class="btn btn-success" id="add" onclick="cleared()">Clear List</button>
+
+        <button type="button" class="btn btn-primary" id="add">Add To List</button>
+
+        <button type="button" class="btn btn-primary" id="savetask" style="display: none;" onclick="save()">Save Task</button>
+
+        <button type="button" class="btn btn-success" id="cleared" onclick="cleared()">Clear List</button>
+
         <div id="items" class="my-4">
             <h2>Your List</h2>
+            <input type="hidden" id="saveindex">
             <table class="table">
                 <thead>
                     <tr>
@@ -83,7 +90,8 @@
                         <th scope="row">1</th>
                         <td>Get Groceries</td>
                         <td>Milk, bread and coffee.</td>
-                        <td><button class="btn btn-danger btn-sm">Delete</button></td>
+                        <td><button class="btn btn-danger btn-sm">Delete</button>
+                            <button class="btn btn-warning btn-sm">Edit</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -100,63 +108,100 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
         integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
         crossorigin="anonymous"></script>
+
     <script>
-        function getanupdate(){
-        tit = document.getElementById("title").value;
-        desc = document.getElementById("description").value;
-        console.log("Updating list..");
-        if (localStorage.getItem("itemsJson") == null) {
-            itemJsonArray = [];
-            itemJsonArray.push([tit, desc]);
-            localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
-            }
-        else {
-            itemJsonArrayStr = localStorage.getItem("itemsJson");
-            itemJsonArray = JSON.parse(itemJsonArrayStr);
-            itemJsonArray.push([tit, desc]);
-            localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
-            }
-        update();
-        }
-        function update(){
+
+        function getanupdate() {
+            tit = document.getElementById("title").value;
+            desc = document.getElementById("description").value;
+            console.log("Updating list..");
             if (localStorage.getItem("itemsJson") == null) {
-            itemJsonArray = [];
-            localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
+                itemJsonArray = [];
+                itemJsonArray.push([tit, desc]);
+                localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
             }
-        else {
-            itemJsonArrayStr = localStorage.getItem("itemsJson");
-            itemJsonArray = JSON.parse(itemJsonArrayStr);
+            else {
+                itemJsonArrayStr = localStorage.getItem("itemsJson");
+                itemJsonArray = JSON.parse(itemJsonArrayStr);
+                itemJsonArray.push([tit, desc]);
+                localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
             }
-        let tableBody = document.getElementById("tableBody");
-        let str = "";
-        itemJsonArray.forEach((element,index) => {
-        str += `
+            update();
+        }
+
+        function update() {
+            if (localStorage.getItem("itemsJson") == null) {
+                itemJsonArray = [];
+                localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
+            }
+            else {
+                itemJsonArrayStr = localStorage.getItem("itemsJson");
+                itemJsonArray = JSON.parse(itemJsonArrayStr);
+            }
+            let tableBody = document.getElementById("tableBody");
+            let str = "";
+            itemJsonArray.forEach((element, index) => {
+                str += `
                 <tr>
-                    <th scope="row">${index+1}</th>
+                    <th scope="row">${index + 1}</th>
                     <td>${element[0]}</td>
                     <td>${element[1]}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="deleted(${index})">Delete</button></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleted(${index})">Delete</button>
+                    <button class="btn btn-warning btn-sm" onclick="edited(${index})">Edit</button></td>
                     </tr>
                 `;
             });
-            tableBody.innerHTML=str;
+            tableBody.innerHTML = str;
+            title.value = "";
+            description.value = "";
         }
+
         add = document.getElementById("add");
-        add.addEventListener("click",getanupdate);
+        add.addEventListener("click", getanupdate);
         update();
-        function deleted(itemIndex){
+
+        function deleted(itemIndex) {
             itemJsonArrayStr = localStorage.getItem("itemsJson");
             itemJsonArray = JSON.parse(itemJsonArrayStr);
-            itemJsonArray.splice(itemIndex,1);
+            itemJsonArray.splice(itemIndex, 1);
             localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
             update();
-        }function cleared(){
-            if(confirm("Do you want to empty the list?"))
-            {
+        }
+
+        function cleared() {
+            if (confirm("Do you want to empty the list?")) {
                 console.log("Clearing...");
                 localStorage.clear();
                 update();
             }
+        }
+
+        function edited(itemIndex) {
+            let saveindex = document.getElementById("saveindex");
+            let add = document.getElementById("add");
+            let savetask = document.getElementById("savetask");
+            saveindex.value = itemIndex;
+            itemJsonArrayStr = localStorage.getItem("itemsJson");
+            itemJsonArray = JSON.parse(itemJsonArrayStr);
+            title.value = itemJsonArray[itemIndex][0];
+            description.value = itemJsonArray[itemIndex][1];
+            savetask.style.display = "inline";
+            add.style.display = "none";
+        }
+
+        function save() {
+            let add = document.getElementById("add");
+            itemJsonArrayStr = localStorage.getItem("itemsJson");
+            itemJsonArray = JSON.parse(itemJsonArrayStr);
+            let saveindex = document.getElementById("saveindex").value;
+            for (keys in itemJsonArray[saveindex]) {
+                itemJsonArray[saveindex][0] = title.value;
+                itemJsonArray[saveindex][1] = description.value;
+            }
+            savetask.style.display = "none";
+            add.style.display = "inline";
+            localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
+            update();
         }
 
     </script>
