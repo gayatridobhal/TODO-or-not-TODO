@@ -67,7 +67,7 @@
             <textarea class="form-control" id="description" rows="3"></textarea>
         </div>
 
-        <button type="button" class="btn btn-primary" id="add">Add To List</button>
+        <button type="button" class="btn btn-primary" id="add" onclick="getanupdate()">Add To List</button>
 
         <button type="button" class="btn btn-primary" id="savetask" style="display: none;" onclick="save()">Save Task</button>
 
@@ -120,11 +120,24 @@
                 itemJsonArray.push([tit, desc]);
                 localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
             }
-            else {
+            else{
+                let c=0;
                 itemJsonArrayStr = localStorage.getItem("itemsJson");
                 itemJsonArray = JSON.parse(itemJsonArrayStr);
-                itemJsonArray.push([tit, desc]);
-                localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
+                itemJsonArray.forEach(element => {
+                    if(tit.localeCompare(element[0])==0)
+                    {
+                        c=1;
+                    }
+                });
+                if(c==0)
+                {
+                    itemJsonArray.push([tit, desc]);
+                    localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
+                }
+                else{
+                    alert("Task name already exists. Choose another name");
+                }
             }
             update();
         }
@@ -156,9 +169,6 @@
             description.value = "";
         }
 
-        add = document.getElementById("add");
-        add.addEventListener("click", getanupdate);
-
         function deleted(itemIndex) {
             itemJsonArrayStr = localStorage.getItem("itemsJson");
             itemJsonArray = JSON.parse(itemJsonArrayStr);
@@ -187,7 +197,7 @@
             savetask.style.display = "inline";
             add.style.display = "none";
         }
-
+        
         function save() {
             let add = document.getElementById("add");
             itemJsonArrayStr = localStorage.getItem("itemsJson");
@@ -202,7 +212,6 @@
             localStorage.setItem("itemsJson", JSON.stringify(itemJsonArray));
             update();
         }
-
     </script>
 </body>
 
